@@ -30,9 +30,7 @@ To use Vocal Democracy, you will need the following:
 
 Note, the variable "voteConfirm" determines if a caller's vote is repeated back to them for confirmation.  Ordinarily, this should always be set to true.  However, a bug in the Prophecy software causes issues when boolean fields are used in some instances (a boolean field is used to confirm the caller's vote).  Setting this value to false will bypass the voter confirmation until this issue is addressed in the next update of Prophecy.
 
-
-*******************************************************************
-Making a call
+## Making a call
 
 * Set up a user in the "voters" table.  (Note: the value of ID in the voters table is the MD5 hash of a 9 digit identification number that is selected for each voter.)
 
