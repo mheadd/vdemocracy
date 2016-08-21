@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<vxml version ="2.1" xmlns="http://www.w3.org/2001/vxml" application="app-root.vxml">
+
+<!-- 
+Vocal Democracy is licensed under a Creative Commons License
+To review this license, go to http://creativecommons.org/licenses/by-nc-sa/2.5/
+-->
+
+<form id="describe">
+
+<block>
+<prompt>
+<audio src="audio/1009.wav">
+This service allows you to select candidates for public office using your telephone.  For each office you are eligible to vote for, a list of candidates will be played.  When you hear the name of the candidate that you want to vote for, simply say the name of the candidate.  You may say the entire name of the candidate, or simply the last name.
+</audio>
+</prompt>
+</block>
+
+<field name="repeat" type="boolean">
+<prompt bargein="false">
+<audio src="audio/1010.wav">
+Would you like to hear this information again?
+</audio>
+</prompt>
+
+<noinput>
+<prompt bargein="false">
+<audio src="audio/1011.wav">
+I'm Sorry.  I did not hear what you said.
+</audio>
+</prompt>
+<reprompt/>
+</noinput>
+
+<nomatch><reprompt/></nomatch>
+
+<filled>
+<if cond="repeat">
+<goto next="#describe"/>
+<else/>
+<goto next="vote.vxml"/>
+</if>
+</filled>
+</field>
+
+</form>
+</vxml>

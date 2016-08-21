@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<vxml version ="2.0" xmlns="http://www.w3.org/2001/vxml" application="app-root.vxml">
+
+<!-- 
+Vocal Democracy is licensed under a Creative Commons License
+To review this license, go to http://creativecommons.org/licenses/by-nc-sa/2.5/
+-->
+
+<!-- Count the number of times the caller tries to log in -->
+<var name="count" expr="0"/>
+
+<catch event="noinput nomatch" count="3">
+<var name="cutoff" expr="1"/>
+<goto next="#goNext"/>
+</catch>
+
+<catch event="badLogin">
+<assign name="count" expr="count+1"/>
+<prompt bargein="false">
+<audio src="audio/1001.wav">Sorry, your attempt to log in was not successful.</audio>
+</prompt>
+<goto next="#get"/>
+</catch>
+
+<form id="welcome">
+<block>
+<assign name="curForm" expr="'welcome'"/>
+<prompt bargein="false">
+<audio src="audio/1002.wav">Welcome to the phone voting demonstration.</audio>
+</prompt>
+<goto next="#get"/>
+</block>
+</form>
+
+<form id="get">
+
+<!-- Check the number of attempts -->
+<block cond="count &gt; 0">
+<assign name="curForm" expr="'get'"/>
+<if cond="count &gt; limit">
+<prompt bargein="false">
+<audio src="audio/1003.wav">You are out of chances.</audio>
+</prompt>
+<var name="cutoff" expr="1"/>
+<goto next="#goNext"/>
+<else/>
+<prompt bargein="false">
+<audio src="audio/1004.wav">Lets try again.</audio>
+</prompt>
+</if>
+</block>
+
+<!-- Get caller phone number -->
+<field name="myANI" type="digits?length=10">
+<prompt bargein="false">
+<audio src="audio/1005.wav">Please enter your 10 digit phone number, starting with the area code.</audio>
+</prompt>
+<filled>
+<assign name="ani" expr="myANI"/>
+</filled>
+</field>
+
+<!-- Get caller id number -->
+<field name="myID" type="digits?length=9">
+<prompt bargein="false">
+<audio src="audio/1006.wav">Please enter your 9 digit voter identification number.</audio>
+</prompt>
+<filled>
+<assign name="id" expr="myID"/>
+<goto next="#check"/>
+</filled>
+</field>
+
+</form>
+
+<!-- check caller credentials -->
+<form id="check">
+<block>
+<assign name="curForm" expr="'check'"/>
+</block>
+<subdialog name="login" src="subdialogs/login.php" namelist="ani id">
+<filled>
+<if cond="login.myError==0">
+<assign name="ed" expr="login.myED"/>
+<assign name="rd" expr="login.myRD"/>
+<assign name="sd" expr="login.mySD"/>
+<goto next="#goNext"/>
+<else/>
+<log>*** An error occured: <value expr="login.myError"/></log>
+<throw event="badLogin"/>
+</if>
+</filled>
+</subdialog>
+</form>
+
+<!-- Final login disposition -->
+<form id="goNext">
+
+<block cond="cutoff==1">
+<assign name="curForm" expr="'goNext'"/>
+<prompt bargein="false">
+<audio src="audio/1007.wav">Sorry. There was a problem.</audio>
+</prompt>
+<log>*** Caller did not log in successfully *** </log>
+<throw event="end_call"/>
+</block>
+
+<block>
+<prompt bargein="false">
+<audio src="audio/1008.wav">Thank you.</audio>
+</prompt>
+<goto next="vote.vxml"/>
+</block>
+
+</form>
+
+</vxml>

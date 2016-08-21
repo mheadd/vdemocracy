@@ -1,0 +1,207 @@
+<?xml version="1.0"?>
+<vxml version ="2.1" xmlns="http://www.w3.org/2001/vxml" application="app-root.vxml">
+
+<!-- 
+Vocal Democracy is licensed under a Creative Commons License
+To review this license, go to http://creativecommons.org/licenses/by-nc-sa/2.5/
+-->
+
+<property name="universals" value="help"/>
+<property name="confidencelevel" value=".60"/>
+
+<!-- Counter variable to iterate through vote selections-->
+<var name="voteCounter" expr="0"/>
+
+<!-- Variable to hold caller vote -->
+<var name="voteNumber" expr="''"/>
+
+<!-- Variable to store caller utterance for submission -->
+<var name="wavVote"/>
+
+<!-- Varialbes to hold arrays of office names, numbers and candidate chocies -->
+<var name="officeNames"/>
+<var name="officeNumbers"/>
+<var name="candidates"/>
+<var name="officeList"/>
+
+<!-- Indicates whether the caller listened to the list of candidates -->
+<var name="hearList" expr="'N'"/>
+
+<!-- Counter for the number of turns taken by the caller -->
+<var name="turns" expr="0"/>
+
+<!-- Get the list of office numbers and names to play to the caller -->
+<form id="getCandidates">
+<block>
+<assign name="curForm" expr="'getCandidates'"/>
+</block>
+	<subdialog name="getList" src="subdialogs/getCandidates.php">
+		<filled>
+			<assign name="officeNames" expr="getList.officeNames"/>
+			<assign name="officeNumbers" expr="getList.officeNumbers"/>
+			<assign name="candidates" expr="getList.candidates"/>
+			<assign name="officeList" expr="getList.officeList"/>
+			<goto next="#intro"/>
+		</filled>
+	</subdialog>
+</form>
+
+
+<!-- Tell the caller how many offices they can vote for -->
+<form id="intro">
+<block>
+<assign name="curForm" expr="'intro'"/>
+ <prompt bargein="false">
+  <audio src="audio/1012a.wav">There are</audio> 
+  <value expr="officeNames.length"/>
+  <audio src="audio/1012b.wav">offices that you can vote for.</audio>
+ </prompt>
+<goto next="#doVote"/>
+</block>
+</form>
+
+
+<!-- Collect the vote from the caller -->
+<form id="doVote">
+
+<!-- Set logging -->
+<block>
+<log expr="logSetting" label="trace:?level=ERROR"/> 
+</block>
+
+<block cond="turns &gt; 0">
+	<if cond="voteCounter == officeNames.length">
+		<prompt>
+		<audio src="audio/1013.wav">You are all done. Thanks for voting.</audio>
+		</prompt>
+		<assign name="status" expr="1"/>
+		<goto next="#finalVote"/>
+	<else/>
+		<prompt>
+		<audio src="audio/1014.wav">Now let's go to the next office.</audio>
+		</prompt>
+		<goto nextitem="getVote"/>
+	</if>
+</block>
+
+<!-- Play list of choices for the current office -->
+<block name="listNames" cond="hearList=='Y'">
+<var name="current" expr="officeNumbers[voteCounter]"/>
+<var name="playList" expr="officeList[current]"/>
+<prompt>
+<audio src="audio/1015a.wav">For</audio>
+<value expr="officeNames[voteCounter]"/>, 
+<audio src="audio/1015b.wav">you can cast a vote for the following candidates.</audio>
+</prompt>
+<foreach item="choice" array="playList">
+<prompt><value expr="choice"/><break/></prompt>
+</foreach>
+<goto nextitem="getVote"/>
+</block>
+
+<field name="getVote">
+<property name="recordutterance" value="true"/>
+<grammar srcexpr="'grammars/voteGrammar.php?ed=' + ed + '&amp;' + 'offnum=' + officeNumbers[voteCounter]"/>
+ <prompt cond="hearList=='N'" bargein="false">
+  <audio src="audio/1016a.wav">To cast a vote for</audio>,
+  <value expr="officeNames[voteCounter]"/>, 
+  <audio src="audio/1016b.wav">please say the name of the candidate you wish to vote for.  To hear a list of choices, say, list.</audio>
+ </prompt>
+ <prompt cond="hearList=='Y'" bargein="false">
+ <audio src="audio/1017.wav">Please say the name of the candidate you wish to vote for.</audio>
+ </prompt>
+<filled>
+<if cond="getVote=='inv'">
+	<prompt>
+	<audio src="audio/1018.wav">You must say the name of a candidate.</audio>
+	</prompt>
+	<clear namelist="getVote"/>
+	<thorw event="nomatch"/>
+<elseif cond="getVote=='list'"/>
+<assign name="hearList" expr="'Y'"/>
+<goto nextitem="listNames"/>
+<else/>
+	<assign name="voteNumber" expr="getVote"/>
+	<assign name="wavVote" expr="application.lastresult$.recording"/>
+	  <if cond="voteConfirm">
+		<goto next="#confirm"/>
+	  <else/>
+		<goto next="#submitVote"/>
+	  </if>
+</if>
+</filled>
+</field>
+</form>
+
+<!-- Confirm voter selection -->
+<form id="confirm">
+<block>
+<assign name="curForm" expr="'confirm'"/>
+	<prompt>
+	<audio src="audio/1015a.wav">For</audio>,
+	<value expr="officeNames[voteCounter]"/>, 
+	<audio src="audio/1019.wav">you have selected</audio> 
+	<value expr="candidates[voteNumber]"/> <audio expr="wavVote"/>.
+	</prompt>
+</block>
+<field name="right" type="boolean">
+<prompt><audio src="audio/1020.wav">Is this correct?</audio></prompt>
+	<filled>
+	<if cond="right">
+		<goto next="#submitVote"/>
+	<else/>
+		<prompt>
+		<audio src="audio/1021.wav">Sorry about that. Let's try again.</audio>
+		</prompt>
+		<clear namelist="voteNumber"/>
+		<goto next="#doVote"/>
+	</if>
+	</filled>
+</field>
+</form>
+
+<!-- Process the vote -->
+<form id="submitVote">
+<block>
+<assign name="curForm" expr="'submitVote'"/>
+</block>
+<var name="prePend" expr="officeNumbers[voteCounter]"/>
+<subdialog name="process" src="subdialogs/voteProcess.php" namelist="call_id wavVote prePend" method="post" enctype="multipart/form-data">
+	<filled>
+		<if cond="process.result==1">
+			<assign name="voteString" expr="voteString + voteNumber + '|'"/>
+			<assign name="voteCounter" expr="voteCounter+1"/>
+			<assign name="turns" expr="turns+1"/>
+			<assign name="hearList" expr="'N'"/>
+			<prompt>
+			<audio src="audio/1022.wav">OK, got it.</audio>
+			</prompt>
+			<goto next="#doVote"/>
+		<else/>
+			<prompt>
+			<audio src="audio/1007.wav">Sorry. There was a problem.</audio>
+			</prompt>
+			<throw event="end_call"/>
+		</if>
+	</filled>
+</subdialog>
+</form>
+
+<!-- Voter has finished voting -->
+<form id="finalVote">
+<block>
+<assign name="curForm" expr="'finalVote'"/>
+</block>
+	<subdialog name="finish" src="subdialogs/finalVote.php" namelist="id ani voteString">
+	<filled>
+		<if cond="finish.myError==1">
+			<log>**** An error has occured ***</log>
+		<else/>
+			<prompt><audio src="audio/1023.wav">Goodbye.</audio></prompt>
+			<throw event="end_call"/>
+		</if>
+	</filled>
+	</subdialog>
+</form>
+
+</vxml>

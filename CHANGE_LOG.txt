@@ -1,0 +1,6 @@
+Version 0.6: 11/28/2006
+
+* Improved error handling (app-root.vxml document).
+* Added call length to call record
+* Added option for caller to list candidates (vote.vxml document).
+* Added pre-recorded audio prompts.

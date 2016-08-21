@@ -1,0 +1,53 @@
+VoiceXML page - login.vxml:
+
+1001.wav: Sorry, your attempt to log in was not successful.
+1002.wav: Welcome to the phone voting demonstration.
+1003.wav: You are out of chances.
+1004.wav: Lets try again.
+1005.wav: Please enter your 10 digit phone number, starting with the area code.
+1006.wav: Please enter your 9 digit voter identification number.
+1007.wav: Sorry. There was a problem.
+1008.wav: Thank you.
+
+---------------------
+
+VoiceXML page - explain.vxml
+
+1009.wav: 
+This service allows you to select candidates for public office using your telephone.  For each office
+you are eligible to vote for, a list of candidates will be played.  When you hear the name of the candidate
+that you want to vote for, simply say the name of the candidate.  You may say the entire name of the
+candidate, or simply the last name.
+
+1010.wav: Would you like to hear this information again?
+1011.wav: I'm Sorry.  I did not hear what you said.
+
+--------------------
+
+VoiceXML page - vote.vxml
+
+1012a.wav: There are...  
+1012b.wav: ...offices that you can vote for.
+1013.wav: You are all done.  Thanks for voting.
+1014.wav: Now let's go to the next office.
+1015a.wav: For... 
+1015b.wav: ...you can cast a vote for the following candidates.
+1016a.wav: To cast a vote for... 
+1016b.wav: ...please say the name of the candidate you wish to vote for.  To hear a list of choices, say, list.
+1017.wav: Please say the name of the candidate you wish to vote for.
+1018.wav: You must say the name of a candidate.
+1015a.wav: For ... 
+1019.wav: you have selected...
+1020.wav: Is this correct?
+1021.wav: Sorry about that.  Let's try again.
+1022.wav: OK, got it.
+1007.wav: Sorry.  There was a problem.
+1023.wav: Goodbye.
+
+--------------------
+
+VoiceXML page - app-root.vxml
+
+1024.wav: I'm sorry that you are having problems.  Please try again later.
+1025.wav: I'm sorry, and error has occured.  please try your call again later.
+

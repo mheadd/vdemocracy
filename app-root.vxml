@@ -1,0 +1,161 @@
+<?xml version="1.0"?>
+<vxml version ="2.1" xmlns="http://www.w3.org/2001/vxml">
+<meta name="maintainer" content="mheadd@voiceingov.org"/>
+<meta name="application" content="VocalDemocracy"/>
+
+<!-- 
+Vocal Democracy is licensed under a Creative Commons License
+To review this license, go to http://creativecommons.org/licenses/by-nc-sa/2.5/
+-->
+
+<script>
+<![CDATA[ 
+
+// Create date object and get date elements
+var today = new Date();
+var year = today.getFullYear();
+var month = today.getMonth();
+var day = today.getDate();
+var hour = today.getHours();
+var minute = today.getMinutes();
+var second = today.getSeconds();
+var mili = today.getMilliseconds();
+
+// Return call id using date elements
+function getID() {
+	var ms = Date.UTC(year,month,day,hour,minute,second,mili);
+	return ms;
+}
+
+function getTime() {
+return new Date();
+}
+
+]]> 
+</script>
+
+<!-- Start time of the call-->
+<var name="callStart" expr="getTime()"/>
+<var name="callLength"/>
+
+<!-- 
+Session ID used to write call log record
+Note - the name of this variable may vary between platforms
+-->
+<var name="session_id" expr="session.id"/>
+
+<!-- Variable to hold the name of any error thrown -->
+<var name="theError" expr="0"/>
+
+<!-- Variable to hold the name of current form -->
+<var name="curForm" expr="''"/>
+
+<!-- Call ID used to name audio files -->
+<var name="call_id" expr="getID()"/>
+
+<!-- Flag to determine whether votes are confirmed by caller -->
+<var name="voteConfirm" expr="false"/>
+
+<!-- Enable or disable logging, don't log sensitive information in production -->
+<!--var name="logSetting" expr="'VOXEO:Logging.disable'"/-->
+<var name="logSetting" expr="'VOXEO:Logging.enable'"/>
+
+<!-- Status of caller login, cut off after limit exceeded -->
+<var name="cutoff" expr="0"/>
+
+<!-- Number of times that a caller can attempt to log in -->
+<var name="limit" expr="2"/>
+
+<!-- Voter status: when voting is done, change to 1 -->
+<var name="status" expr="0"/>
+
+<!-- Caller login credentials -->
+<var name="ani" expr="''"/>
+<var name="id" expr="''"/>
+
+<!-- Caller voting district inforamtion -->
+<var name="ed" expr="''"/>
+<var name="rd" expr="''"/>
+<var name="sd" expr="''"/>
+
+<!-- Variable to hold all caller votes -->
+<var name="voteString" expr="''"/>
+
+<!-- Variables to hold counts on noinputs/nomatches-->
+<var name="numNoInput" expr="0"/>
+<var name="numNoMatch" expr="0"/>
+
+<catch event="noinput nomatch">
+<if cond="_event=='noinout'">
+<assign name="numNoInput" expr="numNoInput+1"/>
+<else/>
+<assign name="numNoMatch" expr="numNoMatch+1"/>
+</if>
+<reprompt/>
+</catch>
+
+<catch event="noinput nomatch" count="3">
+<if cond="_event=='noinout'">
+<assign name="numNoInput" expr="numNoInput+1"/>
+<else/>
+<assign name="numNoMatch" expr="numNoMatch+1"/>
+</if>
+<prompt bargein="false">
+<audio src="audio/1024.wav">I'm sorry that you are having problems.  Please try again later.</audio>
+</prompt>
+<log>*** Caller errored out in form: <value expr="curForm"/>. ***</log>
+<throw event="end_call"/>
+</catch>
+
+<!-- Hanlder fro help event in vote.vxml -->
+<catch event="help">
+<goto next="explain.vxml"/>
+</catch>
+
+<catch event="error.badfetch">
+<prompt bargein="false">
+<audio src="audio/1025.wav">I'm sorry, and error has occured.  please try your call again later.</audio>
+</prompt>
+<log>*** An error occured for session id:<value expr="session_id"/>: <value expr="_event"/> ***</log>
+<log>*** Error occured in form: <value expr="curForm"/> ***</log>
+<assign name="theError" expr="1"/>
+<throw event="end_call"/>
+</catch>
+
+<catch event="error.unsupported.format">
+<prompt bargein="false">
+<audio src="audio/1025.wav">I'm sorry, and error has occured.  please try your call again later.</audio>
+</prompt>
+<log>*** An error occured for session id:<value expr="session_id"/>: <value expr="_event"/> ***</log>
+<log>*** Error occured in form: <value expr="curForm"/> ***</log>
+<assign name="theError" expr="2"/>
+<throw event="end_call"/>
+</catch>
+
+<catch event="error.semantic">
+<prompt bargein="false">
+<audio src="audio/1025.wav">I'm sorry, and error has occured.  please try your call again later.</audio>
+</prompt>
+<log>*** A semantic error occured for session id:<value expr="session_id"/> ***</log>
+<log>*** Error occured in form: <value expr="curForm"/> ***</log>
+<assign name="theError" expr="3"/>
+<throw event="end_call"/>
+<exit/>
+</catch>
+
+<!-- Handler for hangup event -->
+<catch event="connection.disconnect.hangup">
+<throw event="end_call"/>
+</catch>
+
+<!-- Catch hang up event and process data for call log-->
+<catch event="end_call">
+
+<!-- End time of the call -->
+<var name="callEnd" expr="getTime()"/>
+<assign name="callLength" expr="(callEnd-callStart)/1000"/>
+
+<submit next="subdialogs/logCall.php" namelist="session_id cutoff status ed rd sd theError numNoInput numNoMatch callLength"/>
+</catch>
+
+</vxml>
