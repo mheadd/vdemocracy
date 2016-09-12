@@ -2,7 +2,7 @@
 
 Vocal Democracy is a project that is focused on the development of a phone-based voting system to be used in elections to assist voters with disabilities, visual impairment or other challenges in traveling to polling places. 
 
-Note - this is a very old project.  More [details here](https://voiceingov.org/2006/10/17/vocal-democracy/). Moving it to Github for archival purposes.
+Note - this is a very old project.  More [details are here](https://voiceingov.org/2006/10/17/vocal-democracy/). Moving it to Github for archival purposes.
 
 ## Requirements
 
