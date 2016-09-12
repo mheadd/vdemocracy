@@ -4,8 +4,6 @@ Vocal Democracy is a project that is focused on the development of a phone-based
 
 Note - this is a very old project.  More [details here](https://voiceingov.org/2006/10/17/vocal-democracy/). Moving it to Github for archival purposes.
 
-This project is currently in the very early stages of development.  As such, this software is meant to be used for demonstration and evaluation purposes only.  
-
 ## Requirements
 
 To use Vocal Democracy, you will need the following:
